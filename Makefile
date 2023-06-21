@@ -18,3 +18,7 @@ run-rest-server:
 .PHONY: run-grpc-server
 run-grpc-server:
 	go run cmd/grpc-app/main.go
+
+.PHONY: run-gateway
+run-gateway:
+	go run cmd/gateway-app/main.go
