@@ -7,13 +7,11 @@ import (
 	"log"
 	"net"
 	"os"
-	"time"
 
 	"github.com/hiteshrepo/grpc-demo/internal/pkg/model"
 	"github.com/hiteshrepo/grpc-demo/internal/pkg/proto"
 	"github.com/hiteshrepo/grpc-demo/internal/pkg/repo"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 )
 
 type GrpcApp struct {
@@ -39,11 +37,7 @@ func (a *GrpcApp) Start() {
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
-	opts := []grpc.ServerOption{
-		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionAge: time.Minute * 5,
-		}),
-	}
+	opts := []grpc.ServerOption{}
 	s := grpc.NewServer(opts...)
 	proto.RegisterBookServiceServer(s, a)
 	if err := s.Serve(lis); err != nil {

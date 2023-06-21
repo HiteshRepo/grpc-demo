@@ -27,7 +27,14 @@ func (a *RestApp) Start() {
 	if len(os.Getenv("REST_SERVER_PORT")) > 0 {
 		port = os.Getenv("REST_SERVER_PORT")
 	}
-	router.Run(fmt.Sprintf("localhost:%s", port))
+
+	s := &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%s", port),
+		Handler: router,
+	}
+
+	s.SetKeepAlivesEnabled(false)
+	s.ListenAndServe()
 }
 
 func (a *RestApp) Stop() {
