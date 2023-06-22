@@ -4,19 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hiteshrepo/grpc-demo/internal/pkg/model"
 	"github.com/hiteshrepo/grpc-demo/internal/pkg/proto"
 	"google.golang.org/grpc"
 )
 
+const HelloLimit = 5
+
 type GatewayApp struct {
-	client proto.BookServiceClient
-	conn   *grpc.ClientConn
+	client      proto.BookServiceClient
+	helloClient proto.HelloServiceClient
+	conn        *grpc.ClientConn
 }
 
 func NewGatewayApp() *GatewayApp {
@@ -39,6 +47,9 @@ func (a *GatewayApp) Start() {
 
 	router.GET("/rest/books/list", a.listBooks)
 	router.GET("/grpc/books/list", a.listBooksGrpc)
+
+	router.GET("/rest/hello", a.restHello)
+	router.GET("/grpc/hello", a.grpcHello)
 
 	port := "9092"
 	if len(os.Getenv("GATEWAY_PORT")) > 0 {
@@ -89,6 +100,7 @@ func (a *GatewayApp) setupGrpcClient() error {
 	}
 
 	a.client = proto.NewBookServiceClient(a.conn)
+	a.helloClient = proto.NewHelloServiceClient(a.conn)
 
 	return nil
 }
@@ -216,4 +228,110 @@ func (a *GatewayApp) listBooksGrpc(c *gin.Context) {
 	// _ = json.Unmarshal(bodyBytes, &resp)
 
 	c.JSON(http.StatusAccepted, res)
+}
+
+func (a *GatewayApp) restHello(c *gin.Context) {
+	fmt.Println("fetching hello")
+
+	serverHost := "localhost"
+	serverPort := "9090"
+
+	if port, ok := os.LookupEnv("REST_SERVER_PORT"); ok {
+		serverPort = port
+	}
+
+	if service, ok := os.LookupEnv("REST_SERVICE_NAME"); ok {
+		serverHost = service
+	}
+
+	servAddr := fmt.Sprintf("http://%s:%s", serverHost, serverPort)
+
+	allResp := model.AllHelloResponse{
+		Messages: make([]string, 0),
+	}
+
+	for {
+
+		client := &http.Client{}
+		req, err := http.NewRequest("GET", fmt.Sprintf("%s/hello", servAddr), nil)
+		if err != nil {
+			fmt.Println("error while creating rest request", err)
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+		req.Header.Add("Accept", "application/json")
+
+		res, err := client.Do(req)
+		if err != nil {
+			fmt.Println("error while sending rest request", err)
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		defer res.Body.Close()
+		bodyBytes, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println("error while reading books response", err)
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		var resp model.HelloResponse
+		_ = json.Unmarshal(bodyBytes, &resp)
+
+		respParts := strings.Split(resp.Message, "-")
+
+		if len(respParts) != 2 {
+			fmt.Println("invalid response from rest server", resp.Message)
+			break
+		}
+
+		i, err := strconv.Atoi(respParts[1])
+		if err != nil {
+			fmt.Println("invalid response from rest server", resp.Message)
+			break
+		}
+
+		allResp.Messages = append(allResp.Messages, resp.Message)
+
+		if i == HelloLimit {
+			break
+		}
+	}
+
+	c.JSON(http.StatusOK, allResp.Messages)
+}
+
+func (a *GatewayApp) grpcHello(c *gin.Context) {
+	t1 := time.Now()
+	allResp := model.AllHelloResponse{
+		Messages: make([]string, 0),
+	}
+
+	stream, err := a.helloClient.SayHello(context.Background(), &proto.HelloEmpty{})
+
+	if err != nil {
+		fmt.Printf("error while streaming hello : %v", err)
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			fmt.Printf("error while streaming hello : %v", err)
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		allResp.Messages = append(allResp.Messages, resp.Message)
+	}
+
+	fmt.Println("time taken", time.Since(t1).Seconds())
+
+	c.JSON(http.StatusOK, allResp.Messages)
 }

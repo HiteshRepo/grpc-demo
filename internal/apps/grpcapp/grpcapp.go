@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/hiteshrepo/grpc-demo/internal/pkg/model"
 	"github.com/hiteshrepo/grpc-demo/internal/pkg/proto"
@@ -14,8 +15,12 @@ import (
 	"google.golang.org/grpc"
 )
 
+const HelloLimit = 5
+
 type GrpcApp struct {
 	proto.UnimplementedBookServiceServer
+	proto.UnimplementedHelloServiceServer
+
 	bookRepo repo.BookRepo
 }
 
@@ -24,7 +29,7 @@ func NewGrpcApp() GrpcApp {
 }
 
 func (a *GrpcApp) Start() {
-	fmt.Println("Starting book server")
+	fmt.Println("Starting book & hello server")
 
 	port := "50051"
 	if len(os.Getenv("GRPC_SERVER_PORT")) > 0 {
@@ -40,6 +45,7 @@ func (a *GrpcApp) Start() {
 	opts := []grpc.ServerOption{}
 	s := grpc.NewServer(opts...)
 	proto.RegisterBookServiceServer(s, a)
+	proto.RegisterHelloServiceServer(s, a)
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
@@ -76,4 +82,19 @@ func (a *GrpcApp) ListBooks(ctx context.Context, _ *proto.Empty) (*proto.BooksRe
 	}
 
 	return &proto.BooksResponse{Books: pbBooks}, nil
+}
+
+func (a *GrpcApp) SayHello(_ *proto.HelloEmpty, stream proto.HelloService_SayHelloServer) error {
+	fmt.Println("hello service called")
+	for i := 0; i <= HelloLimit; i++ {
+		time.Sleep(1 * time.Second)
+		resp := &proto.HelloResponse{
+			Message: fmt.Sprintf("Hello-%d", i),
+		}
+
+		if err := stream.Send(resp); err != nil {
+			return err
+		}
+	}
+	return nil
 }
