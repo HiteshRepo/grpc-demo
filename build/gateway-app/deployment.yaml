@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-app-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: gateway-app
+  template:
+    metadata:
+      labels:
+        run: gateway-app
+    spec:
+      containers:
+        - image: hiteshpattanayak/gateway-app:1.0
+          imagePullPolicy: IfNotPresent
+          name: gateway-app
+          ports:
+            - containerPort: 9092
+          env:
+            - name: GATEWAY_PORT
+              value: "9092"
+            - name: GRPC_SERVER_PORT
+              value: "50051"
+            - name: GRPC_SERVICE_NAME
+              value: "grpc-svc"
+            - name: REST_SERVER_PORT
+              value: "9090"
+            - name: REST_SERVICE_NAME
+              value: "rest-svc"

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: rest-svc
+  name: rest-svc
+  namespace: default
+spec:
+  ports:
+    - name: rest
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+  selector:
+    run: rest-app
+  type: ClusterIP

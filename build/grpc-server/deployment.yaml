@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-app-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      run: grpc-app
+  template:
+    metadata:
+      labels:
+        run: grpc-app
+    spec:
+      containers:
+        - image: hiteshpattanayak/grpc-app:1.0
+          imagePullPolicy: IfNotPresent
+          name: grpc-app
+          ports:
+            - containerPort: 50051
+          env:
+            - name: GRPC_SERVER_PORT
+              value: "50051"
