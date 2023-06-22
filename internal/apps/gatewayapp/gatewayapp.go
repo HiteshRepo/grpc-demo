@@ -45,7 +45,13 @@ func (a *GatewayApp) Start() {
 		port = os.Getenv("GATEWAY_PORT")
 	}
 
-	router.Run(fmt.Sprintf("0.0.0.0:%s", port))
+	s := &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%s", port),
+		Handler: router,
+	}
+
+	s.SetKeepAlivesEnabled(false)
+	s.ListenAndServe()
 }
 
 func (a *GatewayApp) Shutdown() {
