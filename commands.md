@@ -37,6 +37,6 @@ curl --request GET   --url http://localhost:9092/grpc/hello -w "\n"
 - kubectl create -f build/grpc-server/deployment.yaml
 - kubectl create -f build/grpc-server/service.yaml
 
-- kubectl create -f build/gateway/deployment.yaml
-- kubectl create -f build/gateway/service.yaml
-- kubectl create -f build/gateway/ingress.yaml
+- kubectl create -f build/gateway-app/deployment.yaml
+- kubectl create -f build/gateway-app/service.yaml
+- kubectl create -f build/gateway-app/ingress.yaml

@@ -6,11 +6,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      run: gateway-app
+      app: gateway-app
   template:
     metadata:
       labels:
-        run: gateway-app
+        app: gateway-app
     spec:
       containers:
         - image: hiteshpattanayak/gateway-app:1.0

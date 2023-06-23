@@ -6,11 +6,11 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      run: rest-app
+      app: rest-app
   template:
     metadata:
       labels:
-        run: rest-app
+        app: rest-app
     spec:
       containers:
         - image: hiteshpattanayak/rest-app:1.0

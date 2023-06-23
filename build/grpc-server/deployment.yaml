@@ -6,11 +6,11 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      run: grpc-app
+      app: grpc-app
   template:
     metadata:
       labels:
-        run: grpc-app
+        app: grpc-app
     spec:
       containers:
         - image: hiteshpattanayak/grpc-app:1.0
