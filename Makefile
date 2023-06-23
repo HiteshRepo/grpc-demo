@@ -37,11 +37,11 @@ compile-grpc-server:
 
 .PHONY: package-grpc-server
 package-grpc-server:
-	docker build --file build/grpc-server/Dockerfile -t hiteshpattanayak/grpc-app:1.0 .
+	docker build --file build/grpc-server/Dockerfile -t hiteshpattanayak/grpc-app:2.0 .
 
 .PHONY: publish-grpc-server
 publish-grpc-server:
-	docker push hiteshpattanayak/grpc-app:1.0
+	docker push hiteshpattanayak/grpc-app:2.0
 
 .PHONY: run-gateway
 run-gateway:

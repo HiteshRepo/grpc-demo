@@ -56,6 +56,7 @@ func (a *GrpcApp) Shutdown() {
 }
 
 func (a *GrpcApp) AddBook(_ context.Context, req *proto.BookRequest) (*proto.Empty, error) {
+	fmt.Println("add book")
 	book := &model.Book{
 		ISBN:   int(req.Isbn),
 		Author: req.Author,
@@ -68,7 +69,7 @@ func (a *GrpcApp) AddBook(_ context.Context, req *proto.BookRequest) (*proto.Emp
 }
 
 func (a *GrpcApp) ListBooks(ctx context.Context, _ *proto.Empty) (*proto.BooksResponse, error) {
-
+	fmt.Println("list books")
 	books := a.bookRepo.GetBooks()
 	b, err := json.Marshal(books)
 	if err != nil {

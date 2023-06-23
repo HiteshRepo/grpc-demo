@@ -13,7 +13,7 @@ spec:
         app: grpc-app
     spec:
       containers:
-        - image: hiteshpattanayak/grpc-app:1.0
+        - image: hiteshpattanayak/grpc-app:2.0
           imagePullPolicy: IfNotPresent
           name: grpc-app
           ports:
